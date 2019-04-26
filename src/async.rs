@@ -23,7 +23,7 @@ pub fn async_stdin_until(delimiter: u8) -> AsyncReader {
             Ok(byte) => {
                 let end_of_stream = &byte == &delimiter;
                 if end_of_stream { return }
-                send.send(Ok(byte));
+                send.send(Ok(byte)).unwrap();
 
                 //let send_error = send.send(Ok(byte)).is_err();
                 //if end_of_stream || send_error { return; }
@@ -51,7 +51,7 @@ pub fn async_stdin() -> AsyncReader {
 
     thread::spawn(move || {
         for i in get_tty().unwrap().bytes() {
-            send.send(i);
+            send.send(i).unwrap();
         }
     });
                       // if send.send(i).is_err() {
@@ -87,20 +87,20 @@ impl Read for AsyncReader {
             }
 
             select! {
-                recv(self.recv, msg) => {
+                recv(self.recv) -> msg => {
                     match msg {
-                        Some(Ok(b)) => {
+                        Ok(Ok(b)) => {
                             buf[total] = b;
                             total += 1;
                         }
 
-                        Some(Err(e)) => return Err(e),
+                        Ok(Err(e)) => return Err(e),
 
-                        None => break,
+                        Err(e) => return Err(io::Error::new(io::ErrorKind::Other, format!("crossbeam_channel error: {}", e)))
                     }
                 }
 
-                recv(channel::after(TIMEOUT)) => break,
+                recv(channel::after(TIMEOUT)) -> _ => break,
             }
         }
 

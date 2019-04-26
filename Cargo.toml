@@ -1,6 +1,6 @@
 [package]
 name = "termion"
-version = "1.5.2"
+version = "1.5.3"
 authors = ["ticki <Ticki@users.noreply.github.com>", "gycos <alexandre.bury@gmail.com>", "IGI-111 <igi-111@protonmail.com>"]
 description = "A bindless library for manipulating terminals."
 repository = "https://gitlab.redox-os.org/redox-os/termion"
@@ -11,7 +11,7 @@ exclude = ["target", "CHANGELOG.md", "image.png", "Cargo.lock"]
 
 [dependencies]
 numtoa = { version = "0.1.0", features = ["std"]}
-crossbeam-channel = "0.2"
+crossbeam-channel = "0.3.8"
 
 [target.'cfg(not(target_os = "redox"))'.dependencies]
 libc = "0.2.8"
