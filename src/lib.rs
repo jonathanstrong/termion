@@ -18,11 +18,13 @@ extern crate crossbeam_channel;
 #[path="sys/redox/mod.rs"]
 mod sys;
 
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "redox")))]
 #[path="sys/unix/mod.rs"]
 mod sys;
 
 pub use sys::size::terminal_size;
+#[cfg(all(unix, not(target_os = "redox")))]
+pub use sys::size::terminal_size_pixels;
 pub use sys::tty::{is_tty, get_tty};
 
 mod async;
