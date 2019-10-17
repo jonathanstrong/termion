@@ -157,7 +157,7 @@ fn parse_csi<I>(iter: &mut I) -> Option<Event>
              Some(Ok(b'F')) => Event::Key(Key::End),
              Some(Ok(b'M')) => {
         // X10 emulation mouse encoding: ESC [ CB Cx Cy (6 characters only).
-        let mut next = || iter.next().unwrap().unwrap();
+        let mut next = || iter.next().expect("iter.next").expect("iter.next 2");
 
         let cb = next() as i8 - 32;
         // (1, 1) are the coords for upper left.
@@ -187,29 +187,29 @@ fn parse_csi<I>(iter: &mut I) -> Option<Event>
         // xterm mouse encoding:
         // ESC [ < Cb ; Cx ; Cy (;) (M or m)
         let mut buf = Vec::new();
-        let mut c = iter.next().unwrap().unwrap();
+        let mut c = iter.next().expect("mut c iter.next").expect("mut c iter.next 2");
         while match c {
                   b'm' | b'M' => false,
                   _ => true,
               } {
             buf.push(c);
-            c = iter.next().unwrap().unwrap();
+            c = iter.next().expect("while mut c iter.next").expect("while mut c iter.next 2");
         }
         let str_buf = String::from_utf8(buf).unwrap();
         let nums = &mut str_buf.split(';');
 
         let cb = nums.next()
-            .unwrap()
+            .expect("cb")
             .parse::<u16>()
-            .unwrap();
+            .expect("cb2");
         let cx = nums.next()
-            .unwrap()
+            .expect("cx")
             .parse::<u16>()
-            .unwrap();
+            .expect("cx2");
         let cy = nums.next()
-            .unwrap()
+            .expect("cy")
             .parse::<u16>()
-            .unwrap();
+            .expect("cy2");
 
         let event = match cb {
             0...2 | 64...65 => {
@@ -238,21 +238,22 @@ fn parse_csi<I>(iter: &mut I) -> Option<Event>
         // Numbered escape code.
         let mut buf = Vec::new();
         buf.push(c);
-        let mut c = iter.next().unwrap().unwrap();
+        let mut c = iter.next().expect("c 0..9").expect("c 0..9 2");
         // The final byte of a CSI sequence can be in the range 64-126, so
         // let's keep reading anything else.
         while c < 64 || c > 126 {
             buf.push(c);
-            c = iter.next().unwrap().unwrap();
+            //c = iter.next().unwrap().unwrap();
+            c = iter.next().expect("while c 0..9").expect("while c 0..9 2");
         }
 
         match c {
             // rxvt mouse encoding:
             // ESC [ Cb ; Cx ; Cy ; M
             b'M' => {
-                let str_buf = String::from_utf8(buf).unwrap();
+                let str_buf = String::from_utf8(buf).expect("from utf8");
 
-                let nums: Vec<u16> = str_buf.split(';').map(|n| n.parse().unwrap()).collect();
+                let nums: Vec<u16> = str_buf.split(';').map(|n| n.parse().expect("parse")).collect();
 
                 let cb = nums[0];
                 let cx = nums[1];
@@ -272,11 +273,11 @@ fn parse_csi<I>(iter: &mut I) -> Option<Event>
             }
             // Special key code.
             b'~' => {
-                let str_buf = String::from_utf8(buf).unwrap();
+                let str_buf = String::from_utf8(buf).expect("from utf8");
 
                 // This CSI sequence can be a list of semicolon-separated
                 // numbers.
-                let nums: Vec<u8> = str_buf.split(';').map(|n| n.parse().unwrap()).collect();
+                let nums: Vec<u8> = str_buf.split(';').map(|n| n.parse().expect("parse")).collect();
 
                 if nums.is_empty() {
                     return None;
@@ -325,7 +326,7 @@ fn parse_utf8_char<I>(c: u8, iter: &mut I) -> Result<char, Error>
                 Some(Ok(next)) => {
                     bytes.push(next);
                     if let Ok(st) = str::from_utf8(bytes) {
-                        return Ok(st.chars().next().unwrap());
+                        return Ok(st.chars().next().expect("next"));
                     }
                     if bytes.len() >= 4 {
                         return error;
