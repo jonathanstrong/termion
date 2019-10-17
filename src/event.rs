@@ -121,7 +121,7 @@ pub fn parse_event<I>(item: u8, iter: &mut I) -> Result<Event, Error>
             }
                    Some(Ok(c)) => {
                 let ch = parse_utf8_char(c, iter);
-                Event::Key(Key::Alt(try!(ch)))
+                Event::Key(Key::Alt(ch?))
             }
                    Some(Err(_)) | None => return Err(error),
                })
@@ -135,7 +135,7 @@ pub fn parse_event<I>(item: u8, iter: &mut I) -> Result<Event, Error>
         c => {
             Ok({
                    let ch = parse_utf8_char(c, iter);
-                   Event::Key(Key::Char(try!(ch)))
+                   Event::Key(Key::Char(ch?))
                })
         }
     }
